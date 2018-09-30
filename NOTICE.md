@@ -1,4 +1,6 @@
-This project use these open source libraries
+#### This project uses these open source libraries.
+
+----
 
 ## protobuf-c
 
