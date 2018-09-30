@@ -148,49 +148,79 @@ bool qni_check_input(Qni__Api__InputRequest *req, Qni__Api__InputResponse *res)
     return false;
 }
 
+#define MAKE_COM_AND_APPEND(DATA_CASE, ASSIGN_STMT)                              \
+    Qni__Api__ProgramCommand *com = qni_alloc(sizeof(Qni__Api__ProgramCommand)); \
+    qni__api__program_command__init(com);                                        \
+    com->data_case = DATA_CASE;                                                  \
+    ASSIGN_STMT;                                                                 \
+    append_command(buf, com);
+
+#define MAKE_PRINT_DATA_AND_APPEND(DATA_CASE, ASSIGN_STMT)                             \
+    Qni__Api__ConsolePrintData *print = qni_alloc(sizeof(Qni__Api__ConsolePrintData)); \
+    qni__api__console_print_data__init(print);                                         \
+    print->data_case = DATA_CASE;                                                      \
+    ASSIGN_STMT;                                                                       \
+    MAKE_COM_AND_APPEND(QNI__API__PROGRAM_COMMAND__DATA_PRINT, com->print = print);
+
+#define MAKE_CONSOLE_SETTIGN_AND_APPEND(DATA_CASE, ASSIGN_STMT)                              \
+    Qni__Api__ConsoleSettingItem *setting = qni_alloc(sizeof(Qni__Api__ConsoleSettingItem)); \
+    qni__api__console_setting_item__init(setting);                                           \
+    setting->data_case = DATA_CASE;                                                          \
+    ASSIGN_STMT;                                                                             \
+    MAKE_COM_AND_APPEND(QNI__API__PROGRAM_COMMAND__DATA_UPDATE__SETTING, com->update_setting = setting);
+
 void qni_print(QniCommandBuffer *buf, const char *text, size_t len)
 {
-    Qni__Api__ConsolePrintData *print = qni_alloc(sizeof(Qni__Api__ConsolePrintData));
-    qni__api__console_print_data__init(print);
-    print->data_case = QNI__API__CONSOLE_PRINT_DATA__DATA_PRINT;
-    print->print = qni_alloc(sizeof(char) * len);
-    memcpy(print->print, text, len);
-
-    Qni__Api__ProgramCommand *com = qni_alloc(sizeof(Qni__Api__ProgramCommand));
-    qni__api__program_command__init(com);
-    com->data_case = QNI__API__PROGRAM_COMMAND__DATA_PRINT;
-    com->print = print;
-
-    append_command(buf, com);
+    MAKE_PRINT_DATA_AND_APPEND(
+        QNI__API__CONSOLE_PRINT_DATA__DATA_PRINT,
+        print->print = qni_alloc(sizeof(char) * len);
+        memcpy(print->print, text, len););
 }
 
 void qni_print_line(QniCommandBuffer *buf, const char *text, size_t len)
 {
-    Qni__Api__ConsolePrintData *print = qni_alloc(sizeof(Qni__Api__ConsolePrintData));
-    qni__api__console_print_data__init(print);
-    print->data_case = QNI__API__CONSOLE_PRINT_DATA__DATA_PRINT__LINE;
-    print->print_line = qni_alloc(sizeof(char) * len);
-    memcpy(print->print_line, text, len);
-
-    Qni__Api__ProgramCommand *com = qni_alloc(sizeof(Qni__Api__ProgramCommand));
-    qni__api__program_command__init(com);
-    com->data_case = QNI__API__PROGRAM_COMMAND__DATA_PRINT;
-    com->print = print;
-
-    append_command(buf, com);
+    MAKE_PRINT_DATA_AND_APPEND(
+        QNI__API__CONSOLE_PRINT_DATA__DATA_PRINT__LINE,
+        print->print_line = qni_alloc(sizeof(char) * len);
+        memcpy(print->print_line, text, len););
 }
 
 void qni_new_line(QniCommandBuffer *buf)
 {
-    Qni__Api__ConsolePrintData *print = qni_alloc(sizeof(Qni__Api__ConsolePrintData));
-    qni__api__console_print_data__init(print);
-    print->data_case = QNI__API__CONSOLE_PRINT_DATA__DATA_NEW__LINE;
-    print->new_line = &global_empty;
+    MAKE_PRINT_DATA_AND_APPEND(
+        QNI__API__CONSOLE_PRINT_DATA__DATA_NEW__LINE,
+        print->new_line = &global_empty);
+}
 
-    Qni__Api__ProgramCommand *com = qni_alloc(sizeof(Qni__Api__ProgramCommand));
-    qni__api__program_command__init(com);
-    com->data_case = QNI__API__PROGRAM_COMMAND__DATA_PRINT;
-    com->print = print;
+void qni_set_font(QniCommandBuffer *buf, const char *font_family, size_t font_family_len, float font_size, Qni__Api__FontStyle font_style)
+{
+    Qni__Api__Font *font = qni_alloc(sizeof(Qni__Api__Font));
+    qni__api__font__init(font);
 
-    append_command(buf, com);
+    font->font_family = qni_alloc(font_family_len);
+    memcpy(font->font_family, font_family, font_family_len);
+    font->font_size = font_size;
+    font->font_style = font_style;
+
+    MAKE_CONSOLE_SETTIGN_AND_APPEND(QNI__API__CONSOLE_SETTING_ITEM__DATA_FONT, setting->font = font);
+}
+
+void qni_set_text_align(QniCommandBuffer *buf, Qni__Api__TextAlign text_align)
+{
+    MAKE_CONSOLE_SETTIGN_AND_APPEND(QNI__API__CONSOLE_SETTING_ITEM__DATA_TEXT__ALIGN, setting->text_align = text_align);
+}
+
+void qni_set_text_color(QniCommandBuffer *buf, uint32_t color)
+{
+    MAKE_CONSOLE_SETTIGN_AND_APPEND(QNI__API__CONSOLE_SETTING_ITEM__DATA_TEXT__COLOR, setting->text_color = color);
+}
+
+void qni_set_back_color(QniCommandBuffer *buf, uint32_t color)
+{
+    MAKE_CONSOLE_SETTIGN_AND_APPEND(QNI__API__CONSOLE_SETTING_ITEM__DATA_BACK__COLOR, setting->back_color = color);
+}
+
+void qni_set_highlight_color(QniCommandBuffer *buf, uint32_t color)
+{
+    MAKE_CONSOLE_SETTIGN_AND_APPEND(QNI__API__CONSOLE_SETTING_ITEM__DATA_HIGHLIGHT__COLOR, setting->highlight_color = color);
 }

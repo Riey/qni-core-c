@@ -25,3 +25,8 @@ bool qni_check_input(Qni__Api__InputRequest *req, Qni__Api__InputResponse *res);
 void qni_print(QniCommandBuffer *buf, const char *text, size_t len);
 void qni_print_line(QniCommandBuffer *buf, const char *text, size_t len);
 void qni_new_line(QniCommandBuffer *buf);
+void qni_set_font(QniCommandBuffer *buf, const char *font_family, size_t font_family_len, float font_size, Qni__Api__FontStyle font_style);
+void qni_set_text_align(QniCommandBuffer *buf, Qni__Api__TextAlign text_align);
+void qni_set_text_color(QniCommandBuffer *buf, uint32_t color);
+void qni_set_back_color(QniCommandBuffer *buf, uint32_t color);
+void qni_set_highlight_color(QniCommandBuffer *buf, uint32_t color);

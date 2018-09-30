@@ -46,7 +46,7 @@ size_t pack_message(Qni__Api__ProgramMessage *msg, void **buf)
 {
     size_t len = qni__api__program_message__get_packed_size(msg);
     *buf = qni_alloc(len);
-    protobuf_c_message_pack(msg, *buf);
+    qni__api__program_message__pack(msg, *buf);
     return len;
 }
 
